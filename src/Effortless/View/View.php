@@ -2,7 +2,11 @@
 
     namespace Effortless\View;
 
+    use Effortless\View\Traits\HasSharedVariables;
+
     class View {
+
+        use HasSharedVariables;
 
         protected $name;
         protected $variables;
@@ -21,7 +25,7 @@
         public function compile() {
             $this->setContent(
                 (new Buffering\Buffer($this->getPath()))
-                    ->setVariables($this->variables)
+                    ->setVariables(array_merge($this->variables, static::$sharedVariables))
                     ->getContent()
                 );
             return $this;
