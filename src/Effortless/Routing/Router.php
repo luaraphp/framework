@@ -4,32 +4,32 @@
 
     class Router {
 
-        const INDEX_PATH = '/';
+        protected $currentPath;
+
+        protected $currentRequestMethod;
 
         public function __construct() {
-            
+            $this->currentPath = parse_url($_SERVER['REQUEST_URI'])['path'];
+            $this->currentRequestMethod = $_SERVER['REQUEST_METHOD'];
         }
 
-        protected function getCurrentPath() {
-            return parse_url($_SERVER['REQUEST_URI'])['path'];
-        }
+        protected function resolve($path, $method) {
+            $endpoint = (new RouteFileResolver())->resolve($path)->getEndpoint();
 
-        protected function getCurrentRequestMethod() {
-            return $_SERVER['REQUEST_METHOD'];
-        }
-
-        protected function resolve($path) {
-            if($path == static::INDEX_PATH) {
-                if(file_exists(base_path() . '/routes/index.php')) {
-                    $instance = require(base_path() . '/routes/index.php');
-                    $instance();
+            if(isset($endpoint)) {
+                $route = new Route($endpoint);
+                if(! $route->acceptsRequestMethod($method)) {
+                    echo "Request Method Is Not Match";
+                } else {
+                    $route->fireCallback();
                 }
+                unset($route);
+            } else {
+                echo '404 Not Found';
             }
         }
 
         public function listen() {
-            $currentPath = $this->getCurrentPath();
-            $currentMethod = $this->getCurrentRequestMethod();
-            $this->resolve($currentPath);
+            $this->resolve($this->currentPath, $this->currentRequestMethod);
         }
     }
