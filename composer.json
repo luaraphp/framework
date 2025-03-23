@@ -5,8 +5,11 @@
     "version": "1.0.0",
     "license": "MIT",
     "autoload": {
+        "files": [
+            "src/Effortless/Foundation/helpers.php"
+        ],
         "psr-4": {
-            "Effortless\\": "src/Effortless"
+            "Effortless\\": "src/Effortless/"
         }
     },
     "authors": [

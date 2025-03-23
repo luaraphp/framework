@@ -4,6 +4,8 @@
 
     class Router {
 
+        const INDEX_PATH = '/';
+
         public function __construct() {
             
         }
@@ -16,9 +18,18 @@
             return $_SERVER['REQUEST_METHOD'];
         }
 
+        protected function resolve($path) {
+            if($path == static::INDEX_PATH) {
+                if(file_exists(base_path() . '/routes/index.php')) {
+                    $instance = require(base_path() . '/routes/index.php');
+                    $instance();
+                }
+            }
+        }
+
         public function listen() {
             $currentPath = $this->getCurrentPath();
             $currentMethod = $this->getCurrentRequestMethod();
-            var_dump($currentMethod, $currentPath);
+            $this->resolve($currentPath);
         }
     }

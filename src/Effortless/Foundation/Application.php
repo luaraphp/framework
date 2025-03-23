@@ -16,6 +16,10 @@
             }
         }
 
+        public function getBasePath() {
+            return $this->basePath;
+        }
+
         protected function setBasePath($basePath) {
             $this->basePath = $basePath;
         }
