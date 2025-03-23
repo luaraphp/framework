@@ -13,6 +13,13 @@
                 if(file_exists(base_path() . '/routes/index.php')) {
                     $this->fileDirectory = base_path() . '/routes/index.php';
                 }
+            } else {
+                if(file_exists(base_path() . "/routes/$path.php")) {
+                    $this->fileDirectory = base_path() . "/routes/$path.php";
+                }
+                if(file_exists(base_path() . "/routes/$path/index.php")) {
+                    $this->fileDirectory = base_path() . "/routes/$path/index.php";
+                } 
             }
             return $this;
         }
