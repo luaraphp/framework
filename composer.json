@@ -1,0 +1,21 @@
+{
+    "name": "luara/framework",
+    "description": "The Luara Framework.",
+    "keywords": ["luara", "framework"],
+    "version": "1.0.0",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Effortless\\": "src/Effortless"
+        }
+    },
+    "authors": [
+        {
+            "name": "Amine Amazou",
+            "email": "amazou@outlook.fr"
+        }
+    ],
+    "require": {
+        "php": "^7.3|^8.0"
+    }
+}
