@@ -17,3 +17,15 @@
         }
 
     }
+
+    if(! function_exists('config')) {
+
+        function config($key = null) {
+            $value = app()->getConfig(); 
+            foreach (explode('.', $key) as $miniKey) {
+                $value = $value[$miniKey];
+            };
+            return $value;
+        }
+        
+    }

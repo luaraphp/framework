@@ -33,12 +33,16 @@
             return $this->router;
         }
 
+        public function getConfig() {
+            return $this->config;
+        }
+
         public function setConfig($config) {
             $this->config = $config;
         }
 
         public function bootProviders() {
-            foreach ($this->config['providers'] as $provider) {
+            foreach (config('providers') as $provider) {
                 (new $provider)->boot();
             } 
         }
