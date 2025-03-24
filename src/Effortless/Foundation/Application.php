@@ -10,6 +10,10 @@
 
         protected $router;
 
+        protected $config;
+
+        protected $providers;
+
         public function __construct($basePath = null) {
             if($basePath) {
                 $this->setBasePath($basePath);
@@ -28,4 +32,15 @@
             $this->router = new $routerClass();
             return $this->router;
         }
+
+        public function setConfig($config) {
+            $this->config = $config;
+        }
+
+        public function bootProviders() {
+            foreach ($this->config['providers'] as $provider) {
+                (new $provider)->boot();
+            } 
+        }
+
     }
