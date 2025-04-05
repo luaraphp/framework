@@ -17,8 +17,18 @@
             }
         }
 
+        static public function __callStatic($method, $args) {
+            if(in_array($method, ['all', 'get', 'set', 'forget'])) {
+                static::unsureSessionStarted();
+            }
+
+            if(! method_exists(__CLASS__, $method)) {
+                throw new \BadMethodCallException("Method $method does not exist.");
+            }
+            return forward_static_call_array([__CLASS__, $method], $args);
+        }
+
         static public function all() {
-            static::unsureSessionStarted();
             return $_SESSION;
         }
 
@@ -31,12 +41,10 @@
         }
 
         static public function get($key, $default = null) {
-            static::unsureSessionStarted();
             return $_SESSION[$key] ?? $default;
         }
 
         static public function set($key, $value) {
-            static::unsureSessionStarted();
             $_SESSION[$key] = $value;
             return true;
         }
@@ -48,7 +56,6 @@
         }
 
         static public function forget($key) {
-            static::unsureSessionStarted();
             unset($_SESSION[$key]);
         }
 
