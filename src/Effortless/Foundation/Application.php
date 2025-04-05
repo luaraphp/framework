@@ -18,6 +18,14 @@
             if($basePath) {
                 $this->setBasePath($basePath);
             }
+
+            $this->preventFaviconRequest();
+        }
+
+        protected function preventFaviconRequest() {
+            if($_SERVER['REQUEST_URI'] == "/favicon.ico") {
+                exit;
+            }
         }
 
         public function getBasePath() {

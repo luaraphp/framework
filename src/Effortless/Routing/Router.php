@@ -14,6 +14,7 @@
         }
 
         protected function resolve($path, $method) {
+
             $endpoint = (new RouteFileResolver())->resolve($path)->getEndpoint();
 
             if(isset($endpoint)) {
