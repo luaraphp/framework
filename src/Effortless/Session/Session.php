@@ -4,31 +4,23 @@
 
     class Session {
 
-        protected static $started = false;
+        const FLASH_REGISTER_PREFIX = "__flash_";
+
+        static protected $started = false;
 
         static protected function setStarted($started = false) {
             static::$started = $started;
         }
 
         static protected function unsureSessionStarted() {
-            if(! static::$started) {
+            if(! (static::$started || isset($_SESSION))) {
                 session_start();
                 static::setStarted(true);
             }
         }
 
-        static public function __callStatic($method, $args) {
-            if(in_array($method, ['all', 'get', 'set', 'forget'])) {
-                static::unsureSessionStarted();
-            }
-
-            if(! method_exists(__CLASS__, $method)) {
-                throw new \BadMethodCallException("Method $method does not exist.");
-            }
-            return forward_static_call_array([__CLASS__, $method], $args);
-        }
-
         static public function all() {
+            static::unsureSessionStarted();
             return $_SESSION;
         }
 
@@ -41,10 +33,16 @@
         }
 
         static public function get($key, $default = null) {
-            return $_SESSION[$key] ?? $default;
+            static::unsureSessionStarted();
+            $value = $_SESSION[$key] ?? $default;
+            if(static::isFlashed($key)) {
+                static::unregisterFlash($key);
+            }
+            return $value;
         }
 
-        static public function set($key, $value) {
+        static public function set($key, $value = null) {
+            static::unsureSessionStarted();
             $_SESSION[$key] = $value;
             return true;
         }
@@ -56,6 +54,7 @@
         }
 
         static public function forget($key) {
+            static::unsureSessionStarted();
             unset($_SESSION[$key]);
         }
 
@@ -63,6 +62,28 @@
             $value = static::get($key, $default);
             static::forget($key);
             return $value;
+        }
+
+        static protected function resolveFlashRegisterKey($key) {
+            return Session::FLASH_REGISTER_PREFIX . $key;
+        }
+
+        static protected function isFlashed($key) {
+            return static::exists(static::resolveFlashRegisterKey($key));
+        }
+
+        static protected function registerFlash($key) {
+            static::set(static::resolveFlashRegisterKey($key), true);
+        }
+
+        static protected function unregisterFlash($key) {
+            static::forget($key);
+            static::forget(static::resolveFlashRegisterKey($key));
+        }
+
+        static public function flash($key, $value) {
+            static::set($key, $value);
+            static::registerFlash($key);
         }
 
         static public function increment($key, $incrementBy = 1) {
@@ -78,5 +99,4 @@
                 $static::set($key, $keyToDecrement + $decrementBy);
             }
         }
-
     } 
