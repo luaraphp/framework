@@ -41,8 +41,11 @@
             return $value;
         }
 
-        static public function set($key, $value = null) {
+        static public function set($key, $value = null, $default = null) {
             static::unsureSessionStarted();
+            if(is_callable($value)) {
+                $value = $value(static::get($key, $default));
+            }
             $_SESSION[$key] = $value;
             return true;
         }
@@ -97,6 +100,13 @@
             $keyToDecrement = static::get($key);
             if(is_integer($keyToDecrement)) {
                 $static::set($key, $keyToDecrement + $decrementBy);
+            }
+        }
+
+        static public function switch($key) {
+            $keyToDecrement = static::get($key);
+            if(is_bool($keyToDecrement)) {
+                $static::set($key, !$keyToDecrement);
             }
         }
     } 
