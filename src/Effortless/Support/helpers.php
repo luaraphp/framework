@@ -17,7 +17,7 @@
     if(! function_exists('form')) {
 
         function form($method = "GET", $action = "", $fields = []) {
-            return (new Form($method, $action))->render();
+            return (new Form($method, $action, $fields))->render();
         }
 
     }
