@@ -1,7 +1,7 @@
 <?php
 
     use Effortless\View\View;
-    use Effortless\Support\Form;
+    use Effortless\Support\Html\Form;
 
     if(! function_exists('view')) {
 
@@ -16,8 +16,8 @@
 
     if(! function_exists('form')) {
 
-        function form($method = "GET", $action = "", $fields = []) {
-            return (new Form($method, $action, $fields))->render();
+        function form($method = null, $action = null, $fields = null) {
+            return (new Form($method, $action, $fields));
         }
 
     }
