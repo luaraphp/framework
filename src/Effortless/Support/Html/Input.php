@@ -17,6 +17,10 @@
         protected $attributes;
 
         protected $defaults = [];
+
+        protected $additions = ['html', 'label'];
+
+        protected $html = "";
         
         public function __construct($type = 'text', $attributes = []) {
             $this->type = (new Attribute("type", strtolower($type)))->toRawHtml();
@@ -26,6 +30,10 @@
         protected function setAttribute($name, $value = true) {
             $this->attributes[$name] = $value;
             return $this;
+        }
+
+        protected function isAddition($attribute) {
+            return in_array($attribute, $this->additions);
         }
 
         public function setName($name) {
@@ -137,16 +145,30 @@
 
         public function toRawHtml() {
             $restOfAttributes = implode(' ', array_map(function($key, $value) {
-                $defaultValue = null;
-                if(array_key_exists($key, $this->defaults) === true) {
-                    $defaultValue = $this->defaults[$key];
+                if($this->isAddition($key) === true) {
+                    switch ($key) {
+                        case 'html':
+                            $this->html = $value;
+                            break;
+                        case "label":
+                            $this->label = "$value: ";
+                            break;
+                        default:
+                            break;
+                    }
+                    return "";
+                } else {
+                    $defaultValue = null;
+                    if(array_key_exists($key, $this->defaults) === true) {
+                        $defaultValue = $this->defaults[$key];
+                    }
+                    if($value === false) return "";
+                    return (new Attribute(strtolower($key), $defaultValue))->toRawHtml($value);
                 }
-                if($value === false) return "";
-                return (new Attribute(strtolower($key), $defaultValue))->toRawHtml($value);
             }, array_keys($this->attributes), array_values($this->attributes)));
             if($this->datasetOptions === null) {
                 return "
-                    <input $this->type $this->name $restOfAttributes />
+                    $this->label <input $this->type $this->name $restOfAttributes /> $this->html
                 ";
             } else {
                 $listAttribute = (new Attribute('list', $this->rawName))->toRawHtml();
@@ -164,9 +186,11 @@
                 ";
 
                 return "
-                    <input $this->type $this->name $listAttribute $restOfAttributes />
+                    $this->label <input $this->type $this->name $listAttribute $restOfAttributes />
 
                     $dataset
+
+                    $this->html
                 ";
             }
             

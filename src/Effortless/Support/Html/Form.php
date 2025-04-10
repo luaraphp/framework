@@ -1,7 +1,7 @@
 <?php
 
     namespace Effortless\Support\Html;
-    
+
     use Effortless\View\View;
 
     class Form {
@@ -28,7 +28,7 @@
             return "</form>";
         }
 
-        final protected function resolveNames($fieldsArray) {
+        final protected function fieldsWithNameAttribute($fieldsArray) {
             return array_map(function($fieldNameAttribute, $fieldInstance) {
                 return $fieldInstance->setName($fieldNameAttribute)->toRawHtml();
             }, array_keys($fieldsArray), array_values($fieldsArray));
@@ -39,17 +39,11 @@
         }
 
         public function fields() {
-            return [
-                "name" => Form::field('text')->required()->dataset(['John', 'Donald', 'Jack']),
-                "email" => Form::field('email', [
-                    'class' => 'email-field',
-                    'required' => true,
-                ])
-            ];
+            return [];
         }
 
         final public function render() {
-            $fields = implode('', $this->resolveNames($this->readyFields ?? $this->fields()));
+            $fields = implode('', $this->fieldsWithNameAttribute($this->readyFields ?? $this->fields()));
             echo static::open() . "
                 $fields
             " . static::close();
