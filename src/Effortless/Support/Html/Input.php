@@ -147,6 +147,10 @@
             return $this->setAttribute('checked');
         }
 
+        public function placeholder($placeholder) {
+            return $this->setAttribute('placeholder', $placeholder);
+        }
+
         public function label($label) {
             return $this->setAttribute('label', $label);
         }
@@ -175,6 +179,10 @@
                                 $value = substr(ltrim($value), 4);
                             } else {
                                 if(!(substr(rtrim($value), -(strlen(":"))) == ":")) $value .= ": ";
+                                if(isset($this->attributes['id'])) {
+                                    $forAttribute = (new Attribute('for', $this->attributes['id']))->toRawHtml();
+                                    $value = "<label $forAttribute> $value </label>";
+                                }
                             }
                             $this->label = $value;
                             break;
