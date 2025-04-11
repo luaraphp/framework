@@ -151,7 +151,12 @@
                             $this->html = $value;
                             break;
                         case "label":
-                            $this->label = "$value: ";
+                            if(substr(ltrim($value), 0, 4) === "raw:") {
+                                $value = substr(ltrim($value), 4);
+                            } else {
+                                if(!(substr(rtrim($value), -(strlen(":"))) == ":")) $value .= ": ";
+                            }
+                            $this->label = $value;
                             break;
                         default:
                             break;
