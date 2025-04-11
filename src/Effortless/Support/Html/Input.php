@@ -143,6 +143,22 @@
             return $this;
         }
 
+        public function label($label) {
+            return $this->setAttribute('label', $label);
+        }
+
+        public function rawLabel($label) {
+            return $this->label('raw:' . label);
+        }
+
+        public function html($html) {
+            return $this->setAttribute('html', $html);
+        }
+
+        public function br($times = 1) {
+            return $this->html(($this->attributes['html'] ?? "") . str_repeat(' <br> ', $times));
+        }
+
         public function toRawHtml() {
             $restOfAttributes = implode(' ', array_map(function($key, $value) {
                 if($this->isAddition($key) === true) {
