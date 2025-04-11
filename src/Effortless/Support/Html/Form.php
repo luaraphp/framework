@@ -10,18 +10,22 @@
 
         protected $action;
 
+        protected $target;
+
         protected $readyFields;
 
-        public function __construct($method = null, $action = null, $fields = null) {
+        public function __construct($method = null, $action = null, $fields = null, $target = null) {
             $this->method ??= $method ?? "GET";
             $this->action ??= $action ?? "";
             $this->readyFields = $fields;
+            $this->target ??= $target ?? "";
         }
 
         final protected function open() {
             $method = (new Attribute("method", strtolower($this->method)))->toRawHtml();
             $action = (new Attribute("action"))->toRawHtml($this->action);
-            return " <form $method $action> ";
+            $target = (new Attribute('target'))->toRawHtml($this->target);
+            return " <form $action $method $target> ";
         }
 
         final protected function close() {
@@ -49,8 +53,8 @@
             " . static::close();
         }
 
-        final public static function make($method = null, $action = null, $fields = null) {
-            return new static($method, $action, $fields);
+        final public static function make($method = null, $action = null, $fields = null, $target = null) {
+            return new static($method, $action, $fields, $target);
         }
 
     }  

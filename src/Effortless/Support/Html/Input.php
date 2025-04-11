@@ -143,6 +143,10 @@
             return $this;
         }
 
+        public function checked() {
+            return $this->setAttribute('checked');
+        }
+
         public function label($label) {
             return $this->setAttribute('label', $label);
         }

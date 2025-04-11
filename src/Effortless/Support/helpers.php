@@ -16,8 +16,8 @@
 
     if(! function_exists('form')) {
 
-        function form($method = null, $action = null, $fields = null) {
-            return (new Form($method, $action, $fields));
+        function form($method = null, $action = null, $fields = null, $target = null) {
+            return (new Form($method, $action, $fields, $target));
         }
 
     }
