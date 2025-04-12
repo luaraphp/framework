@@ -78,7 +78,7 @@
                             if($this->grouped !== true) $this->grouped = true;
                             $fieldsetLabel = array_keys($unmergedFields)[$i];
                             if(in_array($fieldsetLabel, array_keys($this->readyFields) ?? []) === true) {
-                                $unmergedFields[$fieldsetLabel] = new Fieldset(array_merge($fieldOrGroup->getFields(), $this->readyFields[$fieldsetLabel]->getFields()));
+                                $unmergedFields[$fieldsetLabel] = $fieldOrGroup->merge($this->readyFields[$fieldsetLabel]->getFields());
                                 unset($this->readyFields[$fieldsetLabel]);
                             }
                         }
