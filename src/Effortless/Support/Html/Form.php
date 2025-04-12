@@ -14,18 +14,34 @@
 
         protected $readyFields;
 
-        public function __construct($method = null, $action = null, $fields = null, $target = null) {
-            $this->method ??= $method ?? "GET";
+        protected $readyAttributes;
+
+        protected $onSubmitPreventDefault;
+
+        public function __construct($method = null, $action = null, $fields = null, $attributes = null) {
+            $this->method ??= $method ?? "get";
             $this->action ??= $action ?? "";
             $this->readyFields = $fields;
-            $this->target ??= $target ?? "";
+            $this->readyAttributes = $attributes;
         }
 
         final protected function open() {
+            $attributes = $this->readyAttributes ?? $this->attributes();
             $method = (new Attribute("method", strtolower($this->method)))->toRawHtml();
             $action = (new Attribute("action"))->toRawHtml($this->action);
-            $target = (new Attribute('target'))->toRawHtml($this->target);
-            return " <form $action $method $target> ";
+            if(!($this->target == null && in_array('target', $attributes))) {
+                $attributes['target'] = $this->target;
+            } 
+            if(!($this->onSubmitPreventDefault == false && in_array('onSubmitPreventDefault', $attributes))) {
+                $attributes['onSubmitPreventDefault'] = $this->onSubmitPreventDefault;
+            }
+            $restOfAttributes = implode(' ', array_map(function($key, $value) {
+                if($key == "onSubmitPreventDefault" && $value === true) {
+                    return (new Attribute('onsubmit'))->toRawHtml('e.preventDefault()');
+                }
+                return (new Attribute(strtolower($key)))->toRawHtml($value);
+            }, array_keys($attributes), array_values($attributes)));
+            return " <form $action $method $restOfAttributes> ";
         }
 
         final protected function close() {
@@ -46,6 +62,10 @@
             return [];
         }
 
+        public function attributes() {
+            return [];
+        }
+
         final public function render() {
             $fields = implode('', $this->fieldsWithNameAttribute($this->readyFields ?? $this->fields()));
             echo static::open() . "
@@ -53,8 +73,8 @@
             " . static::close();
         }
 
-        final public static function make($method = null, $action = null, $fields = null, $target = null) {
-            return new static($method, $action, $fields, $target);
+        final public static function make($method = null, $action = null, $fields = null, $attributes = null) {
+            return new static($method, $action, $fields, $attributes);
         }
 
     }  
