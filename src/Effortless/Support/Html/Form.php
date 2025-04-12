@@ -18,9 +18,12 @@
 
         protected $onSubmitPreventDefault;
 
-        public function __construct($method = null, $action = null, $fields = null, $attributes = null) {
+        protected $throwIn = [];
+
+        public function __construct($method = null, $action = null, $fields = null, $attributes = null, $throwIn = null) {
             $this->method ??= $method ?? "get";
             $this->action ??= $action ?? "";
+            if($throwIn !== null) $this->throwIn = $throwIn;
             $this->readyFields = $fields;
             $this->readyAttributes = $attributes;
         }
@@ -67,14 +70,40 @@
         }
 
         final public function render() {
-            $fields = implode('', $this->fieldsWithNameAttribute($this->readyFields ?? $this->fields()));
+            $whereToSlice = null;
+            if(in_array('fields', $this->throwIn ?? []) === true) {
+                if(count($this->readyFields ?? [])  === 0) {
+                    $unreadyFields = $this->fields();
+                } else {
+                    $fieldsToMergeWith = $this->fields();
+                    for($i = count($fieldsToMergeWith) - 1; $i >= 0; $i--) {
+                        if(in_array(array_values($fieldsToMergeWith)[$i]->getRawType(), ['submit', 'button'])) {
+                            $whereToSlice = $i;
+                        } else break;
+                    }
+                    if($whereToSlice == null) {
+                        $unreadyFields = array_merge($this->fields(), $this->readyFields);
+                    } else {
+                        $unreadyFields = array_merge(
+                            array_slice($this->fields(), 0, $whereToSlice),
+                            $this->readyFields,
+                            array_slice($this->fields(), $whereToSlice)
+                        );
+                    }
+                }
+                
+            } else {
+                $unreadyFields = $this->readyFields ?? $this->fields();
+            }
+            
+            $fields = implode('', $this->fieldsWithNameAttribute($unreadyFields));
             echo static::open() . "
                 $fields
             " . static::close();
         }
 
-        final public static function make($method = null, $action = null, $fields = null, $attributes = null) {
-            return new static($method, $action, $fields, $attributes);
+        final public static function make($method = null, $action = null, $fields = null, $attributes = null, $throwIn = null) {
+            return new static($method, $action, $fields, $attributes, $throwIn);
         }
 
     }  

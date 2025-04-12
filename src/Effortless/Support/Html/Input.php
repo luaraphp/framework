@@ -6,6 +6,8 @@
 
         protected $type;
 
+        protected $rawType;
+
         protected $name = "";
 
         protected $rawName = "";
@@ -24,6 +26,7 @@
         
         public function __construct($type = 'text', $attributes = []) {
             $this->type = (new Attribute("type", strtolower($type)))->toRawHtml();
+            $this->rawType = strtolower($type);
             $this->attributes = $attributes;
         }
 
@@ -165,6 +168,10 @@
 
         public function br($times = 1) {
             return $this->html(($this->attributes['html'] ?? "") . str_repeat(' <br> ', $times));
+        }
+
+        public function getRawType() {
+            return $this->rawType;
         }
 
         public function toRawHtml() {
