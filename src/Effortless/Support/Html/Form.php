@@ -28,37 +28,10 @@
             $this->readyAttributes = $attributes;
         }
 
-        final protected function open() {
-            $attributes = $this->readyAttributes ?? $this->attributes();
-            $method = (new Attribute("method", strtolower($this->method)))->toRawHtml();
-            $action = (new Attribute("action"))->toRawHtml($this->action);
-            if(!($this->target == null && in_array('target', $attributes))) {
-                $attributes['target'] = $this->target;
-            } 
-            if(!($this->onSubmitPreventDefault == false && in_array('onSubmitPreventDefault', $attributes))) {
-                $attributes['onSubmitPreventDefault'] = $this->onSubmitPreventDefault;
-            }
-            $restOfAttributes = implode(' ', array_map(function($key, $value) {
-                if($key == "onSubmitPreventDefault" && $value === true) {
-                    return (new Attribute('onsubmit'))->toRawHtml('e.preventDefault()');
-                }
-                return (new Attribute(strtolower($key)))->toRawHtml($value);
-            }, array_keys($attributes), array_values($attributes)));
-            return " <form $action $method $restOfAttributes> ";
-        }
-
-        final protected function close() {
-            return "</form>";
-        }
-
         final protected function fieldsWithNameAttribute($fieldsArray) {
             return array_map(function($fieldNameAttribute, $fieldInstance) {
                 return $fieldInstance->setName($fieldNameAttribute)->resolveDirName()->toRawHtml();
             }, array_keys($fieldsArray), array_values($fieldsArray));
-        }
-
-        final public static function field($type = 'text', $attributes = []) {
-            return (new Input($type, $attributes));
         }
 
         public function fields() {
@@ -69,7 +42,7 @@
             return [];
         }
 
-        final public function render() {
+        final protected function getFields() {
             $whereToSlice = null;
             if(in_array('fields', $this->throwIn ?? []) === true) {
                 if(count($this->readyFields ?? [])  === 0) {
@@ -95,11 +68,47 @@
             } else {
                 $unreadyFields = $this->readyFields ?? $this->fields();
             }
-            
-            $fields = implode('', $this->fieldsWithNameAttribute($unreadyFields));
+            return implode('', $this->fieldsWithNameAttribute($unreadyFields));
+        }
+
+        final protected function getAttributes() {
+            $attributes = $this->readyAttributes ?? $this->attributes();
+            $method = (new Attribute("method", strtolower($this->method)))->toRawHtml();
+            $action = (new Attribute("action"))->toRawHtml($this->action);
+            if(!($this->target == null && in_array('target', $attributes))) {
+                $attributes['target'] = $this->target;
+            } 
+            if(!($this->onSubmitPreventDefault == false && in_array('onSubmitPreventDefault', $attributes))) {
+                $attributes['onSubmitPreventDefault'] = $this->onSubmitPreventDefault;
+            }
+            $restOfAttributes = implode(' ', array_map(function($key, $value) {
+                if($key == "onSubmitPreventDefault" && $value === true) {
+                    return (new Attribute('onsubmit'))->toRawHtml('e.preventDefault()');
+                }
+                return (new Attribute(strtolower($key)))->toRawHtml($value);
+            }, array_keys($attributes), array_values($attributes)));
+
+            return " $action $method $restOfAttributes ";
+        }
+
+        final protected function open() {
+            $attributes = $this->getAttributes();
+            return " <form $attributes> ";
+        }
+
+        final protected function close() {
+            return "</form>";
+        }
+
+        final public function render() {
+            $fields = $this->getFields();
             echo static::open() . "
                 $fields
             " . static::close();
+        }
+
+        final public static function field($type = 'text', $attributes = []) {
+            return (new Input($type, $attributes));
         }
 
         final public static function make($method = null, $action = null, $fields = null, $attributes = null, $throwIn = null) {
