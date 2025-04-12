@@ -53,7 +53,7 @@
 
         final protected function fieldsWithNameAttribute($fieldsArray) {
             return array_map(function($fieldNameAttribute, $fieldInstance) {
-                return $fieldInstance->setName($fieldNameAttribute)->toRawHtml();
+                return $fieldInstance->setName($fieldNameAttribute)->resolveDirName()->toRawHtml();
             }, array_keys($fieldsArray), array_values($fieldsArray));
         }
 

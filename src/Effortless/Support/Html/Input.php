@@ -23,6 +23,8 @@
         protected $additions = ['html', 'label'];
 
         protected $html = "";
+
+        protected $unresolvedDirName;
         
         public function __construct($type = 'text', $attributes = []) {
             $this->type = (new Attribute("type", strtolower($type)))->toRawHtml();
@@ -42,6 +44,13 @@
         public function setName($name) {
             $this->rawName = $name;
             $this->name = (new Attribute("name", $name))->toRawHtml();
+            return $this;
+        }
+
+        public function resolveDirName() {
+            if($this->unresolvedDirName === true) {
+                $this->setAttribute('dirname', $this->rawName . '.dir');
+            } else if($this->unresolvedDirName !== null) $this->setAttribute('dirname', $this->unresolvedDirName);
             return $this;
         }
 
@@ -70,11 +79,11 @@
         }
 
         public function min($min) {
-            return $this->setAttribute('min', $min);
+            return $this->setAttribute($this->rawType == "text" ? 'minlength' : 'min', $min);
         }
 
         public function max($max) {
-            return $this->setAttribute('max', $max);
+            return $this->setAttribute($this->rawType == "text" ? 'maxlength' : 'max', $max);
         }
 
         public function size($size) {
@@ -85,8 +94,152 @@
             return $this->setAttribute('maxlength', $maxLength);
         }
 
-        public function noAutoComplete() {
-            return $this->setAttribute('autocomplete', 'off');
+        public function autoComplete($autoComplete) {
+            return $this->setAttribute('autocomplete', $autoComplete);
+        }
+
+        public function withAutoComplete() {
+            return $this->autoComplete('on');
+        }
+
+        public function withoutAutoComplete() {
+            return $this->autoComplete('off');
+        }
+
+        public function autoCorrect($autoCorrect) {
+            return $this->setAttribute('autocorrect', $autoCorrect);
+        }
+
+        public function withAutoCorrect() {
+            return $this->autoCorrect('on');
+        }
+
+        public function withoutAutoCorrect() {
+            return $this->autoCorrect('off');
+        }
+
+        public function autoCapitalize($autoCapitalize) {
+            return $this->setAttribute('autocapitalize', $autoCapitalize);
+        }
+
+        public function withAutoCapitalizeWords() {
+            return $this->autoCapitalize('words');
+        }
+
+        public function autoCapitalizeSentences() {
+            return $this->autoCapitalize('sentences');
+        }
+
+        public function autoCapitalizeCharacters() {
+            return $this->autoCapitalize('characters');
+        }
+
+        public function withoutAutoCapitalize() {
+            return $this->autoCapitalize('none');
+        }
+
+        public function spellCheck($spellCheck) {
+            return $this->setAttribute(
+                'spellcheck', 
+                is_bool($spellCheck) 
+                    ? $spellCheck
+                        ? 'true' 
+                        : 'false'
+                    : $spellCheck
+            );
+        }
+
+        public function withSpellCheck() {
+            return $this->spellCheck(true);
+        }
+
+        public function withoutSpellCheck() {
+            return $this->spellCheck(false);
+        }
+
+        public function mode($mode) {
+            return $this->setAttribute('inputmode', $mode);
+        }
+
+        public function modeUrl() {
+            return $this->mode('url');
+        }
+
+        public function modeTel() {
+            return $this->mode('tel');
+        }
+
+        public function modeEmail() {
+            return $this->mode('email');
+        }
+
+        public function modeSearch() {
+            return $this->mode('search');
+        }
+
+        public function modeNumeric() {
+            return $this->mode('numeric');
+        }
+
+        public function accept($fileExtensions) {
+            if(is_string($fileExtensions)) {
+                $fileExtensions = [$fileExtensions];
+            }
+            $extensions = implode(', ', array_map(fn ($extension) => '.' . $extension, $fileExtensions));
+            return $this->setAttribute('accept', $extensions);
+        }
+
+        public function acceptImageOnly() {
+            return $this->setAttribute('accept', 'image/*');
+        }
+
+        public function acceptAudioOnly() {
+            return $this->setAttribute('accept', 'audio/*');
+        }
+
+        public function acceptVideoOnly() {
+            return $this->setAttribute('accept', 'video/*');
+        }
+
+        public function acceptMediaOnly() {
+            return $this->setAttribute('accept', 'image/*, audio/*, video/*');
+        }
+
+        public function acceptPdfOnly() {
+            return $this->setAttribute('accept', 'application/pdf');
+        }
+
+        public function acceptsDocumentsOnly() {
+            return $this->setAttribute('accept', '.docx, application/msword, .pdf, text/plain');
+        }
+
+        public function capture($capture) {
+            return $this->setAttribute('capture', $capture);
+        }
+
+        public function captureUser() {
+            return $this->capture('user');
+        }
+
+        public function captureEnvironment() {
+            return $this->capture('environment');
+        }
+
+        public function dir($dir) {
+            return $this->setAttribute('dir', $dir);
+        }
+
+        public function dirRightToLeft() {
+            return $this->setAttribute('dir', 'rtl');
+        }
+
+        public function dirLeftToRight() {
+            return $this->setAttribute('dir', 'ltr');
+        }
+
+        public function withDirName($name = null) {
+           $this->unresolvedDirName = $name ?? true;
+           return $this;
         }
 
         public function autoFocus() {
