@@ -2,8 +2,6 @@
 
     namespace Effortless\Support\Html;
 
-    use Effortless\View\View;
-
     class Form {
 
         protected $method;
@@ -20,6 +18,8 @@
 
         protected $throwIn = [];
 
+        protected $grouped = false;
+
         public function __construct($method = null, $action = null, $fields = null, $attributes = null, $throwIn = null) {
             $this->method ??= $method ?? "get";
             $this->action ??= $action ?? "";
@@ -28,10 +28,31 @@
             $this->readyAttributes = $attributes;
         }
 
-        final protected function fieldsWithNameAttribute($fieldsArray) {
+        final protected function resolveFieldName($field, $name) {
+            return $field->setName($name)->resolveDirName()->toRawHtml();
+        }
+
+        final protected function resolveFieldsName($fieldsArray) {
             return array_map(function($fieldNameAttribute, $fieldInstance) {
-                return $fieldInstance->setName($fieldNameAttribute)->resolveDirName()->toRawHtml();
+                return $this->resolveFieldName($fieldInstance, $fieldNameAttribute);
             }, array_keys($fieldsArray), array_values($fieldsArray));
+        }
+
+        final protected function resolveGrouped($groupedFieldsArray) {
+            return array_map(function($legendOrName, $fieldOrGroup) {
+                if($fieldOrGroup instanceof Fieldset) {
+                    $legend = "<legend> $legendOrName </legend>";
+                    $fields = implode('', $this->resolveFieldsName($fieldOrGroup->getFields()));
+                    return "
+                        <fieldset>
+                            $legend
+                            $fields
+                        </fieldset>
+                    ";
+                } else {
+                    return $this->resolveFieldName($fieldOrGroup, $legendOrName);
+                }
+            }, array_keys($groupedFieldsArray), array_values($groupedFieldsArray));
         }
 
         public function fields() {
@@ -50,9 +71,14 @@
                 } else {
                     $fieldsToMergeWith = $this->fields();
                     for($i = count($fieldsToMergeWith) - 1; $i >= 0; $i--) {
-                        if(in_array(array_values($fieldsToMergeWith)[$i]->getRawType(), ['submit', 'button'])) {
-                            $whereToSlice = $i;
-                        } else break;
+                        $fieldOrGroup = array_values($fieldsToMergeWith)[$i];
+                        if($fieldOrGroup instanceof Input) {
+                            if(in_array($fieldOrGroup->getRawType(), ['submit', 'button'])) {
+                                $whereToSlice = $i;
+                            } else if($this->grouped === true) break;
+                        } else {
+                            $this->grouped = true;
+                        }
                     }
                     if($whereToSlice == null) {
                         $unreadyFields = array_merge($this->fields(), $this->readyFields);
@@ -64,11 +90,11 @@
                         );
                     }
                 }
-                
             } else {
                 $unreadyFields = $this->readyFields ?? $this->fields();
+                $this->grouped = count(array_filter($unreadyFields, fn ($fieldOrGroup) => $fieldOrGroup instanceof Fieldset)) >= 1;
             }
-            return implode('', $this->fieldsWithNameAttribute($unreadyFields));
+            return implode('', $this->grouped == true ? $this->resolveGrouped($unreadyFields) :  $this->resolveFieldsName($unreadyFields));
         }
 
         final protected function getAttributes() {
@@ -109,6 +135,10 @@
 
         final public static function field($type = 'text', $attributes = []) {
             return (new Input($type, $attributes));
+        }
+
+        final public static function group($fields) {
+            return (new Fieldset($fields));
         }
 
         final public static function make($method = null, $action = null, $fields = null, $attributes = null, $throwIn = null) {
