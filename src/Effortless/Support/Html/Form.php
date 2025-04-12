@@ -98,7 +98,9 @@
         }
 
         final protected function getAttributes() {
-            $attributes = $this->readyAttributes ?? $this->attributes();
+            if(in_array('attributes', $this->throwIn ?? [])) {
+                $attributes = array_merge($this->attributes(), $this->readyAttributes);
+            } else $attributes = $this->readyAttributes ?? $this->attributes();
             $method = (new Attribute("method", strtolower($this->method)))->toRawHtml();
             $action = (new Attribute("action"))->toRawHtml($this->action);
             if(!($this->target == null && in_array('target', $attributes))) {
