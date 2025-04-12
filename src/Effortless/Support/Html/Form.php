@@ -66,27 +66,30 @@
         final protected function getFields() {
             $whereToSlice = null;
             if(in_array('fields', $this->throwIn ?? []) === true) {
-                if(count($this->readyFields ?? [])  === 0) {
-                    $unreadyFields = $this->fields();
-                } else {
-                    $fieldsToMergeWith = $this->fields();
-                    for($i = count($fieldsToMergeWith) - 1; $i >= 0; $i--) {
-                        $fieldOrGroup = array_values($fieldsToMergeWith)[$i];
+                $unmergedFields = $this->fields();
+                if(count($this->readyFields ?? []) >= 0) {
+                    for($i = count($unmergedFields) - 1; $i >= 0; $i--) {
+                        $fieldOrGroup = array_values($unmergedFields)[$i];
                         if($fieldOrGroup instanceof Input) {
                             if(in_array($fieldOrGroup->getRawType(), ['submit', 'button'])) {
                                 $whereToSlice = $i;
-                            } else if($this->grouped === true) break;
+                            }
                         } else {
-                            $this->grouped = true;
+                            if($this->grouped !== true) $this->grouped = true;
+                            $fieldsetLabel = array_keys($unmergedFields)[$i];
+                            if(in_array($fieldsetLabel, array_keys($this->readyFields) ?? []) === true) {
+                                $unmergedFields[$fieldsetLabel] = new Fieldset(array_merge($fieldOrGroup->getFields(), $this->readyFields[$fieldsetLabel]->getFields()));
+                                unset($this->readyFields[$fieldsetLabel]);
+                            }
                         }
                     }
                     if($whereToSlice == null) {
-                        $unreadyFields = array_merge($this->fields(), $this->readyFields);
+                        $unreadyFields = array_merge($unmergedFields, $this->readyFields);
                     } else {
                         $unreadyFields = array_merge(
-                            array_slice($this->fields(), 0, $whereToSlice),
+                            array_slice($unmergedFields, 0, $whereToSlice),
                             $this->readyFields,
-                            array_slice($this->fields(), $whereToSlice)
+                            array_slice($unmergedFields, $whereToSlice)
                         );
                     }
                 }
