@@ -138,8 +138,8 @@
             " . static::close();
         }
 
-        final public static function field($type = 'text', $attributes = []) {
-            return (new Input($type, $attributes));
+        final public static function field($type = 'text', $attributesOrOptions = [], $attributes = []) {
+            return (new Input($type, $attributesOrOptions, $attributes));
         }
 
         final public static function group($fields) {

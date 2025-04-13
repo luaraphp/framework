@@ -25,11 +25,20 @@
         protected $html = "";
 
         protected $unresolvedDirName;
+
+        protected $options = [];
+
+        protected $lowerCaseValues = false;
         
-        public function __construct($type = 'text', $attributes = []) {
-            $this->type = (new Attribute("type", strtolower($type)))->toRawHtml();
+        public function __construct($type = 'text', $attributesOrOptions = [], $attributes = []) {
             $this->rawType = strtolower($type);
-            $this->attributes = $attributes;
+            if(in_array($this->rawType, ['select', 'radio']) === true) {
+                $this->options = $attributesOrOptions;
+                $this->attributes = $attributes;
+            } else {
+                $this->type = (new Attribute("type", $this->rawType))->toRawHtml();
+                $this->attributes = $attributesOrOptions;
+            }
         }
 
         protected function setAttribute($name, $value = true) {
@@ -323,6 +332,11 @@
             return $this->html(($this->attributes['html'] ?? "") . str_repeat(' <br> ', $times));
         }
 
+        public function withLowerCasedValues() {
+            $this->lowerCaseValues = true;
+            return $this;
+        }
+
         public function getRawType() {
             return $this->rawType;
         }
@@ -360,8 +374,37 @@
                 }
             }, array_keys($this->attributes), array_values($this->attributes)));
             if($this->datasetOptions === null) {
+                if($this->rawType === "select") {
+                    $values = array_keys($this->options);
+                    $labels = array_values($this->options);
+                    if(count($values) + count($labels) !== 0) {
+                        $values = array_map(function($label) {
+                            return $this->lowerCaseValues == true ? strtolower($label) : $label;
+                        }, $labels);
+                    }
+                    $options = implode('', array_map(function($value, $label) {
+                        $selected = "";
+                        if(substr(ltrim($value), 0, 9) === "selected:") { 
+                            $value = str_replace('selected:', '', $value);
+                            $selected = "selected";
+                        }
+                        $label = str_replace('selected:', '', $label);
+                        $value = (new Attribute('value', $value))->toRawHtml();
+                        return "<option $value $selected> $label </option>";
+                    }, $values, $labels));
+                    $input = "
+                        <select $this->name $restOfAttributes>
+                            $options
+                        </select>
+                    ";
+                } else {
+                    $input = "<input $this->type $this->name $restOfAttributes />";
+                }
+                if(is_callable($this->html) == true) {
+                    return $this->html("$this->label $input");
+                }
                 return "
-                    $this->label <input $this->type $this->name $restOfAttributes /> $this->html
+                    $this->label $input $this->html
                 ";
             } else {
                 $listAttribute = (new Attribute('list', $this->rawName))->toRawHtml();
@@ -378,6 +421,13 @@
                     </datalist>
                 ";
 
+                if(is_callable($this->html) === true) {
+                    return $this->html("
+                        $this->label <input $this->type $this->name $listAttribute $restOfAttributes />
+
+                        $dataset
+                    ");
+                }
                 return "
                     $this->label <input $this->type $this->name $listAttribute $restOfAttributes />
 
