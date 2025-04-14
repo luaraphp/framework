@@ -341,6 +341,10 @@
             return $this->rawType;
         }
 
+        public function isTypeSubmitOrButton() {
+            return in_array($this->rawType, ['submit', 'button']);
+        }
+
         public function toRawHtml() {
             $restOfAttributes = implode(' ', array_map(function($key, $value) {
                 if($this->isAddition($key) === true) {

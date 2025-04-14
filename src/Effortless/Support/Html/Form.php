@@ -32,7 +32,7 @@
             return $field->setName($name)->resolveDirName()->toRawHtml();
         }
 
-        final protected function resolveFieldsName($fieldsArray) {
+        final protected function resolveFieldsNames($fieldsArray) {
             return array_map(function($fieldNameAttribute, $fieldInstance) {
                 return $this->resolveFieldName($fieldInstance, $fieldNameAttribute);
             }, array_keys($fieldsArray), array_values($fieldsArray));
@@ -40,18 +40,9 @@
 
         final protected function resolveGrouped($groupedFieldsArray) {
             return array_map(function($legendOrName, $fieldOrGroup) {
-                if($fieldOrGroup instanceof Fieldset) {
-                    $legend = "<legend> $legendOrName </legend>";
-                    $fields = implode('', $this->resolveFieldsName($fieldOrGroup->getFields()));
-                    return "
-                        <fieldset>
-                            $legend
-                            $fields
-                        </fieldset>
-                    ";
-                } else {
-                    return $this->resolveFieldName($fieldOrGroup, $legendOrName);
-                }
+                return $fieldOrGroup instanceof Fieldset === true 
+                    ? $fieldOrGroup->setLegend($legendOrName)->resolveFieldsNamesBy(fn($fields) => $this->resolveFieldsNames($fields))->toRawHtml()
+                    : $this->resolveFieldName($fieldOrGroup, $legendOrName);
             }, array_keys($groupedFieldsArray), array_values($groupedFieldsArray));
         }
 
@@ -63,19 +54,47 @@
             return [];
         }
 
+        final protected function mustThrowIn($whatToThrowIn) {
+            return in_array($whatToThrowIn, $this->throwIn ?? []) === true;
+        }
+
+        final protected function mustThrowInFields() {
+            return $this->mustThrowIn('fields'); 
+        }
+
+        final protected function mustThrowInAttributes() {
+            return $this->mustThrowIn('attributes');
+        }
+
+        final protected function hasReadyFields() {
+            return count($this->readyFields ?? []) >= 0;
+        }
+
+        final protected function isGrouped() {
+            return $this->grouped === true;
+        }
+
+        final protected function isGroupedNotSetYet() {
+            return $this->grouped !== true;
+        }
+
+        final protected function setGrouped($value) {
+            return $this->grouped = $value;
+        }
+
         final protected function getFields() {
             $whereToSlice = null;
-            if(in_array('fields', $this->throwIn ?? []) === true) {
+            if($this->mustThrowInFields()) {
                 $unmergedFields = $this->fields();
-                if(count($this->readyFields ?? []) >= 0) {
+                if($this->hasReadyFields()) {
                     for($i = count($unmergedFields) - 1; $i >= 0; $i--) {
                         $fieldOrGroup = array_values($unmergedFields)[$i];
                         if($fieldOrGroup instanceof Input) {
-                            if(in_array($fieldOrGroup->getRawType(), ['submit', 'button'])) {
+                            if($fieldOrGroup->isTypeSubmitOrButton()) {
                                 $whereToSlice = $i;
                             }
                         } else {
-                            if($this->grouped !== true) $this->grouped = true;
+                            if($this->isGroupedNotSetYet()) $this->setGrouped(true);
                             $fieldsetLabel = array_keys($unmergedFields)[$i];
                             if(in_array($fieldsetLabel, array_keys($this->readyFields) ?? []) === true) {
                                 $unmergedFields[$fieldsetLabel] = $fieldOrGroup->merge($this->readyFields[$fieldsetLabel]->getFields());
@@ -95,13 +114,13 @@
                 }
             } else {
                 $unreadyFields = $this->readyFields ?? $this->fields();
-                $this->grouped = count(array_filter($unreadyFields, fn ($fieldOrGroup) => $fieldOrGroup instanceof Fieldset)) >= 1;
+                $this->setGrouped(count(array_filter($unreadyFields, fn ($fieldOrGroup) => $fieldOrGroup instanceof Fieldset)) >= 1);
             }
-            return implode('', $this->grouped == true ? $this->resolveGrouped($unreadyFields) :  $this->resolveFieldsName($unreadyFields));
+            return implode('', $this->isGrouped() ? $this->resolveGrouped($unreadyFields) :  $this->resolveFieldsNames($unreadyFields));
         }
 
         final protected function getAttributes() {
-            if(in_array('attributes', $this->throwIn ?? [])) {
+            if($this->mustThrowInAttributes()) {
                 $attributes = array_merge($this->attributes(), $this->readyAttributes);
             } else $attributes = $this->readyAttributes ?? $this->attributes();
             $method = (new Attribute("method", strtolower($this->method)))->toRawHtml();
