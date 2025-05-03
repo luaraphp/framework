@@ -150,11 +150,19 @@
             return "</form>";
         }
 
+        final protected function format($unformatedHtml) {
+            $dom = new \DOMDocument();
+            @$dom->loadHTML($unformatedHtml);
+            $dom->formatOutput = true;
+            $dom->preserveWhiteSpace = false;
+            return $dom->saveHTML($dom->documentElement->childNodes->item(0)->childNodes->item(0));
+        }
+
         final public function render() {
             $fields = $this->getFields();
-            echo static::open() . "
+            echo $this->format(static::open() . "
                 $fields
-            " . static::close();
+            " . static::close());
         }
 
         final public static function field($type = 'text', $attributesOrOptions = [], $attributes = []) {
