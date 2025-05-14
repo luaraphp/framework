@@ -2,6 +2,7 @@
 
     use Effortless\View\View;
     use Effortless\Support\Html\Form;
+    use function Termwind\render;
 
     if(! function_exists('view')) {
 
@@ -28,4 +29,15 @@
             header("Location: $path");
         }
 
+    }
+
+    if(! function_exists('dd')) {
+
+        function dd(...$content){
+
+            http_response_code(500);
+
+            dump(...$content);
+            exit(1);
+        }
     }
