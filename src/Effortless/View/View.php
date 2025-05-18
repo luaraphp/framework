@@ -33,9 +33,7 @@
 
         public function getContent() {
             if(! $this->ignoreSharedVariables) {
-                $variables = array_merge($this->variables, static::$sharedVariables);
-            } else {
-                $variables = $this->variables;
+                $this->variables = array_merge($this->variables, static::$sharedVariables);
             }
             return $this->blade->make($this->name, $this->variables);
         }
