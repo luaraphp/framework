@@ -8,8 +8,6 @@
 
         function view($name, $variables = []) {
             (new View($name, $variables))
-                ->setPath()
-                ->compile()
                 ->render();
         }
 
