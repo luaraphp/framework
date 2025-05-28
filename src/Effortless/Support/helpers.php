@@ -2,8 +2,7 @@
 
     use Effortless\View\View;
     use Effortless\Support\Html\Form;
-    use function Termwind\render;
-
+    
     if(! function_exists('view')) {
 
         function view($name, $variables = []) {
